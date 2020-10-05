@@ -28,7 +28,7 @@
     ```
 
 4. Files with invalid filenames will be ignored and rest of valid files will be parsed. Error message will be thrown to stdout at runtime.
-5. This program only parses single quote block comment. It does not handle double quote block comment. 
+5. This program only parses single quote block comment for Python files. It does not handle double quote block comment. 
 
 ## Example
 

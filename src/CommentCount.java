@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.util.*;
 
 public class CommentCount {
-    private static final String helpMessage = "  Usage: java CommentCount -file [filename1 filename2 ...]";
+    private static final String helpMessage = "  Usage: java CommentCount [options]\n" +
+            "  -help                                :: display this help and exit.\n" +
+            "  -file [filename1 filename2 ...]      :: indicate the [filename] to be parsed.";
     private static final Map<String, Extension> files = new HashMap<>();
     private static final Map<Extension, Map<CommentType, String>> mappings = new HashMap<>();
 
@@ -30,8 +32,14 @@ public class CommentCount {
             int endIdx = line.indexOf(dictionary.get(CommentType.blockEnd), startIdx + 3);
             return (endIdx != -1);
         } else {
-            return line.endsWith(dictionary.get(CommentType.blockEnd));
+            return line.contains(dictionary.get(CommentType.blockEnd));
         }
+    }
+
+    private static boolean containsTODO(String line, String comment) {
+        String noSpaceLine = line.replaceAll("\\s+","");
+        int index = noSpaceLine.indexOf(comment) + comment.length();
+        return noSpaceLine.startsWith("TODO", index);
     }
 
     private static void parseFiles(Map<String, Extension> files) {
@@ -62,13 +70,10 @@ public class CommentCount {
                     line = line.trim();
                     // case: single line comment
                     if (line.contains(singleLine)) {
-                        if (line.contains("TODO")) todoCount++;
+                        if (containsTODO(line, singleLine)) todoCount++;
                         singleLineComment++;
-                    }
-
-                    // case: block comment
-                    if (line.contains(blockStart)) {
-                        if (line.contains("TODO")) todoCount++;
+                    } else if (line.contains(blockStart)) { // case: block comment
+                        if (containsTODO(line, blockStart)) todoCount++;
                         blockCount++;
                         blockComment++;
 
@@ -77,7 +82,9 @@ public class CommentCount {
                             continue;
                         }
 
-                        while (!(line = bufferedReader.readLine()).contains(blockEnd)) {
+                        while ((line = bufferedReader.readLine()) != null) {
+                            line = line.trim();
+                            if (line.contains(blockEnd)) break;
                             if (line.contains("TODO")) todoCount++;
                             lineTotal++;
                             blockComment++;
